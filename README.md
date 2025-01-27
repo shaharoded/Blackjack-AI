@@ -85,6 +85,61 @@ Agent Limitations:
 
 State representation is simplified (player_value, dealer_card, usable_ace), which limits the agent's ability to generalize.
 
+## **Analysis of Results**
+
+The Blackjack AI agents demonstrate the ability to learn basic strategies within the constraints of the simplified environment. Below is a summary of the performance and areas for improvement:
+
+### **Performance**
+1. **Regular Agent:**
+   - Achieved a stable win rate of approximately **36%** after training for 100,000 episodes.
+   - The plateau is consistent with expected performance given the house advantage and limited decision-making options (hit or stick only).
+   - The agent's learning is evident through its ability to avoid busting more effectively over time.
+
+2. **Card Counting Agent:**
+   - Improved win rate by **1-2%** compared to the regular agent, demonstrating the utility of the running count.
+   - The benefit of card counting is constrained by:
+     - Regular deck reshuffling after every 5 games.
+     - Simplified state representation, which limits the agent’s ability to fully exploit the running count.
+
+### **Key Observations**
+- **Simplified State Representation:** The current state includes only `player_value`, `dealer_card`, and `usable_ace`. This limits the agent's ability to generalize nuanced strategies.
+- **House Advantage:** The dealer acts after the player, ties go to the dealer, and no doubling down or splitting is allowed. These rules inherently favor the dealer, keeping the player’s win rate below 50%.
+- **Monte Carlo Sampling Efficiency:** The agent relies on visiting states frequently to learn, which may slow down convergence for rare scenarios.
+
+---
+
+## **How to Improve**
+
+### **1. Use a More Sophisticated Learning Algorithm**
+- Implement **Deep Q-Networks (DQN)**:
+  - Allows for faster convergence and better generalization.
+  - Enables the agent to handle more complex state-action spaces, such as multiple decks or additional decision options.
+
+### **2. Enhance State Representation**
+- Incorporate more details into the state, such as:
+  - **Hand Composition:** Include specific card combinations to account for soft/hard totals.
+  - **Running Count:** Use the card counting logic as part of the state, not just for exploration adjustment.
+  - **Remaining Deck Composition:** Track cards dealt to estimate probabilities of specific draws.
+
+### **3. Extend Blackjack Rules**
+- Add support for **doubling down**, **splitting**, and **insurance**. These options provide strategic opportunities to increase the player's advantage.
+- Introduce **betting strategies**, allowing the agent to optimize based on the running count.
+
+### **4. Reduce Deck Reshuffling Frequency**
+- Increase the number of games before deck reshuffling or introduce multi-deck play (e.g., 4-deck or 8-deck shoes). This would amplify the benefits of card counting.
+
+### **5. Train for Longer Periods**
+- Run training for **200,000+ episodes** to explore more states and refine the agent’s policy further.
+
+### **6. Optimize Hyperparameters**
+- Experiment with:
+  - **Exploration Rate (Epsilon):** Test decay schedules to balance exploration and exploitation.
+  - **Learning Rate (Alpha):** Adjust the rate at which the Q-values are updated.
+
+---
+
+By implementing these improvements, the Blackjack AI can evolve from a basic rule-following agent to a more advanced and competitive player capable of exploiting strategic opportunities.
+
 ## Git Updates
 
 ```bash
