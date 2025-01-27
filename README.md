@@ -71,7 +71,14 @@ You'll be prompted with the following menu:
 ![Training Progress Plot - Regular](Images/regular_agent.png)
 
 #### **Training Progress Plot - Card Counter**
+Annoyingly, the counter got lesser results than the regular player, meaning it's not integrating the counting information in a constructive way. This should be examined when optimizations are made.
 ![Training Progress Plot - Card Counter](Images/card_counter_agent.png)
+
+#### **Policy Heatmap - Regular**
+
+Allows you to asses the agent's next move at a given scenario. You can clearly see it's not optimal, but it did catch on a few important base moves. Fine tuning the exploration will probably improve this:
+
+![Policy - Regular](Images/policy.png)
 
 
 ## Considerations

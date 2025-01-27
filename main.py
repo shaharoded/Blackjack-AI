@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pickle
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -8,7 +9,10 @@ from agent import Agent, CardCountingAgent  # Both regular and card-counting age
 from blackjack import Blackjack
 
 
-def train_model(env, episodes=50000, model_path="Trained Agents/blackjack_agent.pkl", agent_type="regular", update_interval=1000, acceptable_proficiency=0.8):
+def train_model(
+    env, episodes=50000, model_path="Trained Agents/blackjack_agent.pkl",
+    agent_type="regular", update_interval=1000, acceptable_proficiency=0.5
+):
     """
     Train a Blackjack agent using Monte Carlo methods, save the model, and plot win percentages.
     Automatically resumes training if a saved model exists.
@@ -19,9 +23,9 @@ def train_model(env, episodes=50000, model_path="Trained Agents/blackjack_agent.
         model_path (str): Path to save the trained model.
         agent_type (str): "regular" for the default agent, "card_counter" for card-counting agent.
         update_interval (int): Frequency to log the win percentage during training.
-        acceptable_proficiency (float): Early stop condition when reached a certain winning ratio.
+        acceptable_proficiency (float): Early stop condition when reaching a certain winning ratio.
     """
-    # Check if a model already exists
+    # Load or initialize the agent
     if os.path.exists(model_path):
         print(f"Loading existing model from {model_path}...")
         with open(model_path, 'rb') as f:
@@ -37,10 +41,9 @@ def train_model(env, episodes=50000, model_path="Trained Agents/blackjack_agent.
     min_epsilon = 0.01
 
     for episode in tqdm(range(1, episodes + 1), desc="Training Progress"):
-        # Epsilon decay
+        # Dynamic epsilon decay
         agent.epsilon = max(min_epsilon, agent.epsilon * decay_rate)
 
-        # Play a single episode
         episode_data = []
         state = env.reset()
         while True:
@@ -58,18 +61,18 @@ def train_model(env, episodes=50000, model_path="Trained Agents/blackjack_agent.
         agent.update_Q(episode_data)
         agent.improve_policy()
 
-        # Log win percentage at intervals
+        # Log win percentage
         if episode % update_interval == 0:
             win_percentage = (cumulative_wins / cumulative_games)
             win_percentages.append(win_percentage * 100)
 
             # Early stopping condition
-            if win_percentage >= acceptable_proficiency:
-                print(f"Early stopping at episode {episode}: Win percentage = {win_percentage:.2f}%")
+            if len(win_percentages) > 5 and np.mean(win_percentages[-5:]) >= acceptable_proficiency * 100:
+                print(f"Early stopping at episode {episode}: Avg win percentage = {np.mean(win_percentages[-5:]):.2f}%")
                 break
 
-    # Save the trained model
-    os.makedirs(os.path.dirname(model_path), exist_ok=True)  # Ensure directory exists
+    # Save model
+    os.makedirs(os.path.dirname(model_path), exist_ok=True)
     with open(model_path, 'wb') as f:
         pickle.dump(agent, f)
     print(f"Model saved to {model_path}")
@@ -129,7 +132,45 @@ def test_model(env, agent_type="regular", episodes=1000):
     print(f"Test Results: {results}")
     win_percentage = (results["win"] / episodes) * 100
     print(f"Win Percentage: {win_percentage:.2f}%")
+    plot_policy_heatmap(agent)
     return results
+
+def plot_policy_heatmap(agent):
+    """
+    Plots a heatmap of the agent's policy with player totals on the X-axis and dealer's visible cards on the Y-axis.
+
+    Args:
+        agent (Agent): The trained Blackjack agent.
+    """
+    # Define ranges for player totals and dealer visible cards
+    player_totals = range(4, 22)  # Player totals from 4 to 21
+    dealer_cards = range(1, 11)  # Dealer's visible card (1 = Ace, 2-10)
+
+    # Create a matrix to store the policy actions (flipped orientation)
+    policy_matrix = np.zeros((len(dealer_cards), len(player_totals)))
+
+    # Populate the matrix with the agent's policy
+    for i, dealer_card in enumerate(dealer_cards):
+        for j, player_total in enumerate(player_totals):
+            state = (player_total, dealer_card, False)  # Example: No usable ace
+            action = agent.policy.get(state, -1)  # Default to -1 if state not encountered
+            policy_matrix[i, j] = action  # 0 = Hit, 1 = Stick, -1 = Unknown
+
+    # Plot the heatmap
+    fig, ax = plt.subplots(figsize=(12, 6))
+    cax = ax.imshow(policy_matrix, cmap="coolwarm", interpolation="nearest", origin="lower")
+
+    # Add labels and colorbar
+    ax.set_xticks(np.arange(len(player_totals)))
+    ax.set_xticklabels(player_totals)
+    ax.set_yticks(np.arange(len(dealer_cards)))
+    ax.set_yticklabels(dealer_cards)
+    ax.set_xlabel("Player's Total")
+    ax.set_ylabel("Dealer's Visible Card")
+    ax.set_title("Agent Policy Heatmap (0=Hit, 1=Stick)")
+
+    fig.colorbar(cax, ax=ax, label="Action (0 = Hit, 1 = Stick)")
+    plt.show()
 
 
 if __name__ == "__main__":

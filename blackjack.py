@@ -8,7 +8,6 @@ class Blackjack:
     A class to simulate a simplified game of Blackjack with a rule that the dealer
     must hit on a soft 17.
     """
-
     def __init__(self, reshuffle_after=5):
         """
         Initializes the Blackjack environment.

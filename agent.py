@@ -18,11 +18,11 @@ class Agent:
         """
         Initializes the agent with default parameters.
         """
-        self.Q = defaultdict(self.default_Q)  # Replaces the lambda
+        self.Q = defaultdict(self.default_Q)  # Action-value function
         self.policy = defaultdict(int)  # 0: hit, 1: stick
-        self.returns = defaultdict(list)
-        self.gamma = 1.0
-        self.epsilon = 0.1
+        self.returns = defaultdict(list)  # Track returns for state-action pairs
+        self.gamma = 1.0  # Discount factor
+        self.epsilon = 0.1  # Exploration rate
 
     @staticmethod
     def default_Q():
@@ -32,7 +32,7 @@ class Agent:
         Returns:
             np.ndarray: A zero-initialized array of size 2 for actions [hit, stick].
         """
-        return np.zeros(2)
+        return np.array([0.1, 0])  # Slight bias toward hitting initially
 
     def generate_episode(self, env):
         """
@@ -47,13 +47,14 @@ class Agent:
         episode = []
         state = env.reset()
         while True:
-            # Dynamically adjust epsilon based on the Q-value difference
+            # Dynamically adjust epsilon based on Q-value differences
             q_diff = abs(self.Q[state][1] - self.Q[state][0])
-            dynamic_epsilon = max(self.epsilon, self.epsilon + (1 - q_diff))  # More exploration if Q-values are close
+            dynamic_epsilon = max(self.epsilon, self.epsilon + (1 - q_diff))
 
-            if np.random.rand() < dynamic_epsilon:  # Exploration
+            # Exploration vs exploitation
+            if np.random.rand() < dynamic_epsilon:
                 action = np.random.choice(['hit', 'stick'])
-            else:  # Exploitation
+            else:
                 action = 'hit' if self.policy[state] == 0 else 'stick'
 
             next_state, reward, done = env.step(action)
@@ -87,20 +88,6 @@ class Agent:
         """
         for state in self.Q:
             self.policy[state] = np.argmax(self.Q[state])
-
-    def train(self, env, episodes=10000):
-        """
-        Trains the agent using Monte Carlo methods.
-
-        Args:
-            env (Blackjack): The Blackjack environment.
-            episodes (int): The number of training episodes.
-        """
-        for _ in range(episodes):
-            episode = self.generate_episode(env)
-            self.update_Q(episode)
-            self.improve_policy()
-            
 
 class CardCountingAgent(Agent):
     """
@@ -177,6 +164,12 @@ class CardCountingAgent(Agent):
                 action = 'hit' if self.policy[enhanced_state] == 0 else 'stick'  # Exploitation
 
             next_state, reward, done = env.step(action)
+
+            # Reward shaping based on running count
+            if running_count_state == 'low' and abs(env.hand_value(env.player_hand)[0] - 21) < 3:
+                reward += 0.1  # Reward for drawing near 21 when the count is low
+            elif running_count_state == 'high' and action == 'stick' and env.hand_value(env.player_hand)[0] >= 17:
+                reward += 0.1  # Reward for sticking at high values when the count is high
 
             # Update running count for new cards dealt
             for card in env.player_hand:
