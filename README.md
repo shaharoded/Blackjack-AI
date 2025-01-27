@@ -16,6 +16,8 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 ---
 
 ## **Project Structure**
+
+```bash
 .
 ├── images/
 │   ├── training_progress_plot.png
@@ -25,6 +27,7 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 ├── main.py
 ├── README.md
 └── Trained Agents        # Existing model files to load.
+```
 ---
 
 ## **How to Run**
