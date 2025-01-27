@@ -50,14 +50,13 @@ pip install -r requirements.txt
 python main.py
 ```
 
-You'll be prompted withthe following menu:
+You'll be prompted with the following menu:
 
 ```bash
 🃏 Blackjack AI Trainer 🃏
 1. 🎓 Train Model
 2. 📊 Test Model
-3. 🕹️ Play Against Agent
-4. ❌ Exit
+3. ❌ Exit
 ```
 
 ## Performance
@@ -96,7 +95,7 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
    - The agent's learning is evident through its ability to avoid busting more effectively over time.
 
 2. **Card Counting Agent:**
-   - Improved win rate by **1-2%** compared to the regular agent, demonstrating the utility of the running count.
+   - Improved win rate by **2-3%** compared to the regular agent, demonstrating the utility of the running count.
    - The benefit of card counting is constrained by:
      - Regular deck reshuffling after every 5 games.
      - Simplified state representation, which limits the agent’s ability to fully exploit the running count.

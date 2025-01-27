@@ -111,41 +111,51 @@ class Blackjack:
         """
         player_value, usable_ace = self.hand_value(self.player_hand)
         dealer_card = self.dealer_hand[0]
-        return player_value, dealer_card, usable_ace
 
-    def step(self, action):
+        # Keep player value exact to preserve learning fidelity
+        return (player_value, dealer_card, usable_ace)
+
+    def step(self, action, is_dealer=False):
         """
         Takes an action ('hit' or 'stick') and progresses the game.
 
         Args:
             action (str): The player's action, either 'hit' or 'stick'.
+            is_dealer (bool): If True, applies the action to the dealer's hand.
 
         Returns:
             tuple: The next state, reward, and whether the game is done.
         """
         if action == 'hit':
-            # Player takes a card
-            self.player_hand.append(self.draw_card())
-            if self.is_bust(self.player_hand):
-                # Player loses if they go over 21
-                return self.get_state(), -1, True
+            # Dealer or player takes a card
+            if is_dealer:
+                self.dealer_hand.append(self.draw_card())
+                if self.is_bust(self.dealer_hand):
+                    # Dealer loses if they go over 21
+                    return self.get_state(), -1, True
+            else:
+                self.player_hand.append(self.draw_card())
+                if self.is_bust(self.player_hand):
+                    # Player loses if they go over 21
+                    return self.get_state(), -1, True
 
         elif action == 'stick':
-            # Dealer takes cards until the hitting rule is satisfied
-            while self.dealer_hits():
-                self.dealer_hand.append(self.draw_card())
+            if not is_dealer:
+                # Dealer takes cards until the hitting rule is satisfied
+                while self.dealer_hits():
+                    self.dealer_hand.append(self.draw_card())
 
-            # Evaluate the final hands
-            dealer_value, _ = self.hand_value(self.dealer_hand)
-            player_value, _ = self.hand_value(self.player_hand)
+                # Evaluate the final hands
+                dealer_value, _ = self.hand_value(self.dealer_hand)
+                player_value, _ = self.hand_value(self.player_hand)
 
-            # Determine the outcome
-            if dealer_value > 21 or player_value > dealer_value:
-                return self.get_state(), 1, True  # Player wins
-            elif player_value == dealer_value:
-                return self.get_state(), 0, True  # Draw
-            else:
-                return self.get_state(), -1, True  # Dealer wins
+                # Determine the outcome
+                if dealer_value > 21 or player_value > dealer_value:
+                    return self.get_state(), 1, True  # Player wins
+                elif player_value == dealer_value:
+                    return self.get_state(), 0, True  # Draw
+                else:
+                    return self.get_state(), -1, True  # Dealer wins
 
         # If action was 'hit' and the player hasn't busted, return the ongoing state
         return self.get_state(), 0, False

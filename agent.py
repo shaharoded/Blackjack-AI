@@ -47,10 +47,15 @@ class Agent:
         episode = []
         state = env.reset()
         while True:
-            if np.random.rand() < self.epsilon:  # Exploration
+            # Dynamically adjust epsilon based on the Q-value difference
+            q_diff = abs(self.Q[state][1] - self.Q[state][0])
+            dynamic_epsilon = max(self.epsilon, self.epsilon + (1 - q_diff))  # More exploration if Q-values are close
+
+            if np.random.rand() < dynamic_epsilon:  # Exploration
                 action = np.random.choice(['hit', 'stick'])
             else:  # Exploitation
                 action = 'hit' if self.policy[state] == 0 else 'stick'
+
             next_state, reward, done = env.step(action)
             episode.append((state, action, reward))
             if done:
@@ -68,7 +73,9 @@ class Agent:
         G = 0
         for t in reversed(range(len(episode))):
             state, action, reward = episode[t]
-            G = reward + self.gamma * G
+            G = reward + self.gamma * G  # Compute cumulative discounted reward
+
+            # Avoid updating if the state-action pair has already appeared in this episode
             if (state, action) not in [(x[0], x[1]) for x in episode[:t]]:
                 action_idx = 0 if action == 'hit' else 1
                 self.returns[(state, action_idx)].append(G)
@@ -122,6 +129,20 @@ class CardCountingAgent(Agent):
         elif card in [10, 11]:  # 11 is the Ace
             self.running_count -= 1
 
+    def discretize_running_count(self):
+        """
+        Discretizes the running count into 'low', 'neutral', or 'high'.
+
+        Returns:
+            str: The discretized running count.
+        """
+        if self.running_count > 5:
+            return 'high'
+        elif self.running_count < -5:
+            return 'low'
+        else:
+            return 'neutral'
+
     def generate_episode(self, env):
         """
         Generates an episode while incorporating card counting into decisions.
@@ -144,12 +165,16 @@ class CardCountingAgent(Agent):
             self.update_running_count(card)
 
         while True:
+            # Incorporate running count into state
+            running_count_state = self.discretize_running_count()
+            enhanced_state = (state[0], state[1], state[2], running_count_state)
+
             # Adjust exploration probability based on running count
-            effective_epsilon = max(0.01, self.epsilon * (1 if self.running_count <= 0 else 1.5))
-            if np.random.rand() < effective_epsilon:
+            dynamic_epsilon = self.epsilon * (1 / (1 + abs(self.running_count)))
+            if np.random.rand() < dynamic_epsilon:
                 action = np.random.choice(['hit', 'stick'])  # Exploration
             else:
-                action = 'hit' if self.policy[state] == 0 else 'stick'  # Exploitation
+                action = 'hit' if self.policy[enhanced_state] == 0 else 'stick'  # Exploitation
 
             next_state, reward, done = env.step(action)
 
@@ -157,7 +182,7 @@ class CardCountingAgent(Agent):
             for card in env.player_hand:
                 self.update_running_count(card)
 
-            episode.append((state, action, reward))
+            episode.append((enhanced_state, action, reward))
             if done:
                 break
             state = next_state
