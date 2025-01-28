@@ -100,8 +100,8 @@ Test Results: {'win': 2041, 'lose': 2545, 'draw': 414}
 Win Percentage: 41.62%
 ```
 
-### **Training Progress Plot - Card Counter (300K episodes)**
-The counter is a slower learner than the regular agent, reaching plateau only later. I also noticed that given it's exploration method, and it's less-greedy method in training, it looks on the training plot as if it's performances are lower, when in fact on purly deterministic testing enviroment it's better than the naive agent by **1.5-3%**. 
+### **Training - Card Counter (300K episodes)**
+The counter is a slower learner than the regular agent, reaching plateau only later. Given it's less deterministic nature, in order to asses it's winning ratio while training, a fixed number of **deteministic** evaluation iterations are performed at each evaluation period. Based on my observations, this architecture is better than the naive agent by **1.5-3%**. 
 
 ```bash
 Test Results: {'win': 2177, 'lose': 2405, 'draw': 418}
