@@ -11,6 +11,9 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 - Two AI agents:
   - **Regular Agent**: Learns using Monte Carlo sampling.
   - **Card Counting Agent**: Incorporates running count to adjust its decisions dynamically.
+- An assistant module to recommend on optimal play based on the game state, using a loop until ordered to stop
+  - Has a reshuffling option.
+  - Support both honest player or card counter. 
 - Deck reshuffles automatically after every 5 games.
 - Performance tracking during training with win percentage visualization.
 - Early stopping during training if the agent achieves a win rate of **50% or higher**.
@@ -26,11 +29,12 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 │   ├── training progress plots 
 │   ├── policy plots
 │   └── visitation plots
-├── Trained Agents/                 # Trained model files to load.
+├── Trained Agents/                 # Trained model files to load
 │   ├── blackjack_agent.pkl         ## Naive agent
 │   └── blackjack_counter_agent.pkl ## Card counter agent
 ├── blackjack.py                    # Game class with dealer handling
 ├── agent.py                        # AI agent
+├── assistant.py                    # AI supported assistant
 ├── main.py
 ├── README.md
 └── requirements.txt
@@ -66,7 +70,8 @@ You'll be prompted with the following menu:
 🃏 Blackjack AI Trainer 🃏
 1. 🎓 Train Model
 2. 📊 Test Model
-3. ❌ Exit
+3. 🤖 The Don speaks – Get your next move
+4. ❌ Exit
 ```
 ---
 

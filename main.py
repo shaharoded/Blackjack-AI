@@ -7,6 +7,7 @@ import seaborn as sns
 # Local Code
 from agent import Agent, CardCountingAgent  # Both regular and card-counting agents
 from blackjack import Blackjack
+from assistant import BlackjackRecommender
 
 
 def train_model(
@@ -200,13 +201,100 @@ def plot_visitation_heatmap(agent):
     plt.show()
 
 
+def get_assistant(model_path):
+    """
+    Initiate an assistant class using a trained model to recommend a play
+    given a current game status.
+    """
+    # Load the agent
+    try:
+        with open(model_path, 'rb') as f:
+            agent = pickle.load(f)
+        print(f"✅ Loaded model from {model_path}")
+    except FileNotFoundError:
+        print(f"❌ Model not found at {model_path}. Please train the agent first.")
+        return None
+
+    # Initialize the recommender
+    assistant = BlackjackRecommender(agent)
+
+    # Game Loop
+    while True:
+        print("\n[🎴] New Round. Enter the game state or type 'shuffle' to reset count, 'end' to stop.")
+        
+        # Get dealer's visible card
+        dealer_card = input("Enter the dealer's visible card (1-10, where 1 = Ace): ").strip()
+        if dealer_card.lower() == "shuffle":
+            assistant.reset_running_count()
+            continue
+        if dealer_card.lower() == "end":
+            print("🔚 Exiting the assistant.")
+            break
+
+        try:
+            dealer_card = int(dealer_card)
+            if dealer_card < 1 or dealer_card > 10:
+                raise ValueError
+        except ValueError:
+            print("❌ Invalid input. Please enter a number between 1 and 10.")
+            continue
+        
+        # Get player hand
+        player_hand = input("Enter your hand as comma-separated values (e.g., 5,8 or 10,1): ").strip()
+        if player_hand.lower() == "end":
+            print("🔚 Exiting the assistant.")
+            break
+
+        try:
+            player_hand = [int(card) for card in player_hand.split(",")]
+        except ValueError:
+            print("❌ Invalid input. Please enter valid card values (1-10).")
+            continue
+
+        # Update running count if needed
+        assistant.update_running_count(player_hand + [dealer_card])
+
+        # Start the round
+        while True:
+            # Get recommendation
+            suggestion = assistant.recommend_action(player_hand, dealer_card)
+            print(f"\n🤖 Recommendation: **{suggestion.upper()}** based on current game state.")
+
+            if suggestion == "stick":
+                print("✅ Ending turn with current hand.")
+                break  # Exit the round, start a new one
+
+            # If suggested to hit, ask for new card
+            new_card = input("🔥 You drew a new card. Enter its value (or type 'end' to stop): ").strip()
+            if new_card.lower() == "end":
+                print("🔚 Exiting the assistant.")
+                return
+
+            try:
+                new_card = int(new_card)
+                if new_card < 1 or new_card > 10:
+                    raise ValueError
+                player_hand.append(new_card)  # Add new card to hand
+                assistant.update_running_count([new_card])  # Update the count
+            except ValueError:
+                print("❌ Invalid input. Please enter a valid card value (1-10).")
+                continue
+
+            # Check if the player is busted
+            player_value, _ = assistant.env.hand_value(player_hand)
+            if player_value > 21:
+                print("\n💥 You went **BUST**! Round over.")
+                break  # Exit the round loop
+
+    
 if __name__ == "__main__":
     env = Blackjack()
 
     print("\n🃏 Blackjack AI Trainer 🃏")
     print("1. 🎓 Train Model")
     print("2. 📊 Test Model")
-    print("3. ❌ Exit")
+    print("3. 🤖 The Don speaks – Get your next move")
+    print("4. ❌ Exit")
     choice = input("Select an option: ").strip()
 
     if choice == "1":
@@ -232,5 +320,9 @@ if __name__ == "__main__":
         model_path = "Trained Agents/blackjack_agent.pkl" if agent_type == 'naive' else 'Trained Agents/blackjack_counter_agent.pkl'
         test_model(env, model_path, episodes)
     
+    elif choice == "3":
+        agent_type = input("Select assistnt type ('honest' or 'counter'): ").strip().lower()
+        model_path = "Trained Agents/blackjack_agent.pkl" if agent_type == 'honest' else 'Trained Agents/blackjack_counter_agent.pkl' 
+        get_assistant(model_path)
     else:
-        print("Invalid option. Exiting.")
+        print("OK bye Now.")

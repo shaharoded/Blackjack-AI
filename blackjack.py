@@ -1,7 +1,5 @@
 import random
 
-import random
-
 
 class Blackjack:
     """
