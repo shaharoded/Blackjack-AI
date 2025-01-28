@@ -83,7 +83,7 @@ Test Results: {'win': 2041, 'lose': 2545, 'draw': 414}
 Win Percentage: 41.62%
 ```
 
-#### **Training Progress Plot - Card Counter (300K)**
+#### **Training Progress Plot - Card Counter (300K episodes)**
 The counter is a slower learner than the regular agent, reaching plateau only later. I also noticed that given it's exploration method, and it's less-greedy method, it looks on the train set as if it's performances are lower, when in fact on purly deterministic testing enviroment it's performances are better. 
 
 ```bash
@@ -97,7 +97,7 @@ Allows you to asses the agent's next move at a given scenario. You can see it ca
 ![Policy - Regular](Images/policy_counter.png)
 
 
-#### **Exploration Heatmap - Regular**
+#### **Exploration Heatmap - Card Counter**
 
 Allows you to asses if a relative starvation happend for certain states:
 
