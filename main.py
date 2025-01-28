@@ -257,8 +257,9 @@ def get_assistant(model_path):
         # Start the round
         while True:
             # Get recommendation
-            suggestion = assistant.recommend_action(player_hand, dealer_card)
-            print(f"\n🤖 Recommendation: **{suggestion.upper()}** based on current game state.")
+            # Get recommendation & probability
+            suggestion, win_probability = assistant.recommend_action(player_hand, dealer_card)
+            print(f"\n🤖 Recommendation: **{suggestion.upper()}** (🃏 Estimated win chance: {win_probability:.2f}%)")
 
             if suggestion == "stick":
                 print("✅ Ending turn with current hand.")

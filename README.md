@@ -73,6 +73,20 @@ You'll be prompted with the following menu:
 3. 🤖 The Don speaks – Get your next move
 4. ❌ Exit
 ```
+
+If assistant mode is chosen, a simple interface will interact with you through the game, suggest the best play and estimate your sucess rate. Remember, the house has a built in advantage, so the probabilities are never ~100%.
+
+```bash
+    [🎴] New Round. Enter the game state or type 'shuffle' to reset count, 'end' to stop.
+    Enter the dealer's visible card (1-10, where 1 = Ace): 4
+    Enter your hand as comma-separated values (e.g., 5,8 or 10,1): 2,6
+
+    🤖 Recommendation: **HIT** (🃏 Estimated win chance: 56.08%)
+    🔥 You drew a new card. Enter its value (or type 'end' to stop): 6
+
+    🤖 Recommendation: **STICK** (🃏 Estimated win chance: 44.16%)
+    ✅ Ending turn with current hand.
+```
 ---
 
 ## Performance
