@@ -2,6 +2,8 @@
 
 A simplified Blackjack simulation with AI agents that learn to play using **Monte Carlo methods**. The coding experiment includes a regular agent and a card-counting agent, both trained to optimize their strategies against a dealer, and was created as an intro to RL and also to humiliate my broter at Black-Jack.
 
+---
+
 ## Features
 - Simplified Blackjack rules:
   - No splitting or doubling down.
@@ -66,6 +68,7 @@ You'll be prompted with the following menu:
 2. 📊 Test Model
 3. ❌ Exit
 ```
+---
 
 ## Performance
 ### **Training Progress Plot - Regular Agent (200K episodes)**
@@ -97,16 +100,16 @@ Allows you to asses if a relative starvation happend for certain states:
 
 ![Exploration - Regular](Images/states_visitation.png)
 
+---
 
 ## Considerations
 Agent Limitations:
 
  - The simplified rules (no doubling down, splitting) reduce the potential for strategy optimization.
  - Monte Carlo methods are computationally expensive and converge slowly for large state-action spaces.
+ - State representation is simplified (player_value, dealer_card, usable_ace, n_cards_in_hand), which limits the agent's ability to generalize.
 
-## Environment Constraints
-
-State representation is simplified (player_value, dealer_card, usable_ace, n_cards_in_hand), which limits the agent's ability to generalize.
+---
 
 ## Analysis of Results
 
@@ -116,8 +119,6 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
 - **Simplified State Representation:** The current state includes only `player_value`, `dealer_card`, `usable_ace`, `len(player_hand)` and `running_count` (for CardCounterAgent only). This limits the agent's ability to generalize nuanced strategies.
 - **House Advantage:** The dealer acts after the player, ties go to the dealer, and no doubling down or splitting is allowed. These rules inherently favor the dealer, keeping the player’s win rate below 50%.
 - **Monte Carlo Sampling Efficiency:** The agent relies on visiting states frequently to learn, which may slow down convergence for rare scenarios.
-
----
 
 ### **How to Improve**
 
@@ -150,9 +151,9 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
   - **Exploration Rate (Epsilon):** Test decay schedules to balance exploration and exploitation.
   - **Learning Rate (Alpha):** Adjust the rate at which the Q-values are updated.
 
----
-
 By implementing these improvements, the Blackjack AI can evolve from a basic rule-following agent to a more advanced and competitive player capable of exploiting strategic opportunities.
+
+---
 
 ## Git Updates
 
