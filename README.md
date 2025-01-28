@@ -1,8 +1,8 @@
-# **Blackjack AI**
+# Blackjack AI
 
 A simplified Blackjack simulation with AI agents that learn to play using **Monte Carlo methods**. The coding experiment includes a regular agent and a card-counting agent, both trained to optimize their strategies against a dealer, and was created as an intro to RL and also to humiliate my broter at Black-Jack.
 
-## **Features**
+## Features
 - Simplified Blackjack rules:
   - No splitting or doubling down.
   - Dealer must hit on a soft 17.
@@ -16,7 +16,7 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 
 ---
 
-## **Project Structure**
+## Project Structure
 
 ```bash
 .
@@ -35,7 +35,7 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 ```
 ---
 
-## **How to Run**
+## How to Run
 
 ### **1. Clone the Repository**
 ```bash
@@ -104,11 +104,11 @@ Agent Limitations:
  - The simplified rules (no doubling down, splitting) reduce the potential for strategy optimization.
  - Monte Carlo methods are computationally expensive and converge slowly for large state-action spaces.
 
-## Environment Constraints:
+## Environment Constraints
 
 State representation is simplified (player_value, dealer_card, usable_ace, n_cards_in_hand), which limits the agent's ability to generalize.
 
-## **Analysis of Results**
+## Analysis of Results
 
 The Blackjack AI agents demonstrate the ability to learn basic strategies within the constraints of the simplified environment. Below is a summary of the observations and areas for improvement:
 
