@@ -1,10 +1,16 @@
+import os
+import pickle
+from tqdm import tqdm
 from collections import defaultdict
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 class Agent:
     """
     An AI agent that learns to play Blackjack using Monte Carlo methods.
+    NOTE: The only parameter that can be optimized here is epsilon.
 
     Attributes:
         Q (defaultdict): The action-value function mapping states to actions.
@@ -21,22 +27,35 @@ class Agent:
         self.Q = defaultdict(self.default_Q)  # Action-value function
         self.policy = defaultdict(int)  # 0: hit, 1: stick
         self.returns = defaultdict(list)  # Track returns for state-action pairs
-        self.gamma = 1.0  # Discount factor
-        self.epsilon = 0.1  # Exploration rate
+        self.visits = defaultdict(self.default_visits)  # Track visits for actions [hit, stick]
+        self.gamma = 1.0  # Discount factor, future rewards as important as current ones.
+        self.epsilon = 0.5  # High Exploration rate as it reduces through episodes.
 
     @staticmethod
     def default_Q():
         """
         Default initialization for Q-values.
-
+        Introduces small random values to reduce bias toward equal exploration.
+        
         Returns:
-            np.ndarray: A zero-initialized array of size 2 for actions [hit, stick].
+            np.ndarray: A randomly initialized array for actions [hit, stick].
         """
-        return np.array([0.1, 0])  # Slight bias toward hitting initially
+        return np.random.uniform(low=0.01, high=0.1, size=2)
+    
+    @staticmethod
+    def default_visits():
+        """
+        Default initialization for visit counts.
+        """
+        return [0, 0]  # Initialize visit counts for 'hit' and 'stick'
+    
+    def update_visits(self, state, action):
+        action_idx = 0 if action == 'hit' else 1
+        self.visits[state][action_idx] += 1
 
     def generate_episode(self, env):
         """
-        Generates a single episode by interacting with the environment.
+        Generates a single episode (game) by interacting with the environment.
 
         Args:
             env (Blackjack): The Blackjack environment.
@@ -45,18 +64,24 @@ class Agent:
             list: A list of (state, action, reward) tuples representing the episode.
         """
         episode = []
+        decay_factor = 0.999  # Decay rate per episode
         state = env.reset()
-        while True:
-            # Dynamically adjust epsilon based on Q-value differences
-            q_diff = abs(self.Q[state][1] - self.Q[state][0])
-            dynamic_epsilon = max(self.epsilon, self.epsilon + (1 - q_diff))
+        while True:          
+            # Apply decay-based epsilon adjustment
+            dynamic_epsilon = max(0.01, self.epsilon * (decay_factor ** env.round_counter))  # Ensure epsilon doesn't go below 0.01
 
             # Exploration vs exploitation
             if np.random.rand() < dynamic_epsilon:
                 action = np.random.choice(['hit', 'stick'])
             else:
                 action = 'hit' if self.policy[state] == 0 else 'stick'
+                
+            # Track visits
+            action_idx = 0 if action == 'hit' else 1
+            aggregated_state = state[:3]  # Only use (player_total, dealer_card, usable_ace)
+            self.visits[aggregated_state][action_idx] += 1
 
+            # Take action in the environment
             next_state, reward, done = env.step(action)
             episode.append((state, action, reward))
             if done:
@@ -67,6 +92,8 @@ class Agent:
     def update_Q(self, episode):
         """
         Updates the action-value function using the generated episode.
+        Updates are performed using the Monre-Carlo method, using a complete episode
+        to calculate Q.
 
         Args:
             episode (list): A list of (state, action, reward) tuples.
@@ -88,13 +115,77 @@ class Agent:
         """
         for state in self.Q:
             self.policy[state] = np.argmax(self.Q[state])
+            
+    def train(
+        self, env, episodes=50000, model_path=None,
+        update_interval=1000, acceptable_proficiency=0.5
+    ):
+        """
+        Train the agent using Monte Carlo methods.
+
+        Args:
+            env (Blackjack): The Blackjack environment.
+            episodes (int): Number of training episodes.
+            model_path (str): Path to save the trained model.
+            update_interval (int): Frequency to log the win percentage during training.
+            acceptable_proficiency (float): Early stop condition when reaching a certain winning ratio.
+        """
+        if model_path and os.path.exists(model_path):
+            print(f"[Training Status]: Loading existing model from {model_path}...")
+            with open(model_path, 'rb') as f:
+                loaded_agent = pickle.load(f)
+                self.__dict__.update(loaded_agent.__dict__)  # Copy state from loaded agent
+        else:
+            print("[Training Status]: No existing model found. Training a new agent...")
+
+        win_percentages = []
+        cumulative_wins = 0
+        cumulative_games = 0
+
+        for episode in tqdm(range(1, episodes + 1), desc="Training Progress"):
+            episode_data = self.generate_episode(env)  # Use the agent's existing method
+
+            # Update Q-values and policy
+            self.update_Q(episode_data)
+            self.improve_policy()
+
+            # Log win percentage
+            reward = episode_data[-1][-1]  # Last reward in the episode
+            if reward == 1:
+                cumulative_wins += 1
+            cumulative_games += 1
+
+            if episode % update_interval == 0:
+                win_percentage = (cumulative_wins / cumulative_games)
+                win_percentages.append(win_percentage * 100)
+
+                # Early stopping condition
+                if len(win_percentages) > 5 and np.mean(win_percentages[-5:]) >= acceptable_proficiency * 100:
+                    print(f"Early stopping at episode {episode}: Avg win percentage = {np.mean(win_percentages[-5:]):.2f}%")
+                    break
+
+        # Save model
+        if model_path:
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            with open(model_path, 'wb') as f:
+                pickle.dump(self, f)
+            print(f"Model saved to {model_path}")
+
+        # Plot win percentage
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(update_interval, len(win_percentages) * update_interval + 1, update_interval), win_percentages, marker='o')
+        plt.title('Win Percentage During Training')
+        plt.xlabel('Episodes')
+        plt.ylabel('Win Percentage (%)')
+        plt.grid(True)
+        plt.show()
+
 
 class CardCountingAgent(Agent):
     """
     An AI agent that learns to play Blackjack using Monte Carlo methods
     and incorporates card counting for strategy adjustments.
     """
-
     def __init__(self):
         """
         Initializes the card counting agent with default parameters
@@ -106,26 +197,27 @@ class CardCountingAgent(Agent):
 
     def update_running_count(self, card):
         """
-        Updates the running count based on the card dealt.
+        Updates the running count based on the card dealt using Hi-Low method.
 
         Args:
             card (int): The value of the card dealt.
         """
         if card in [2, 3, 4, 5, 6]:
             self.running_count += 1
-        elif card in [10, 11]:  # 11 is the Ace
+        elif card in [10, 1]:  # High cards (10, Jack, Queen, King, Ace)
             self.running_count -= 1
 
-    def discretize_running_count(self):
+    def discretize_running_count(self, thresh=5):
         """
         Discretizes the running count into 'low', 'neutral', or 'high'.
+        Discretization based on thresh.
 
         Returns:
             str: The discretized running count.
         """
-        if self.running_count > 5:
+        if self.running_count >= thresh:
             return 'high'
-        elif self.running_count < -5:
+        elif self.running_count <= -thresh:
             return 'low'
         else:
             return 'neutral'
@@ -154,9 +246,9 @@ class CardCountingAgent(Agent):
         while True:
             # Incorporate running count into state
             running_count_state = self.discretize_running_count()
-            enhanced_state = (state[0], state[1], state[2], running_count_state)
+            enhanced_state = (state[0], state[1], state[2], state[3], running_count_state)
 
-            # Adjust exploration probability based on running count
+            # Reduce exploration if the deck is hot\cold.
             dynamic_epsilon = self.epsilon * (1 / (1 + abs(self.running_count)))
             if np.random.rand() < dynamic_epsilon:
                 action = np.random.choice(['hit', 'stick'])  # Exploration
@@ -167,13 +259,22 @@ class CardCountingAgent(Agent):
 
             # Reward shaping based on running count
             if running_count_state == 'low' and abs(env.hand_value(env.player_hand)[0] - 21) < 3:
-                reward += 0.1  # Reward for drawing near 21 when the count is low
+                hand_value_diff = abs(env.hand_value(env.player_hand)[0] - 21)
+                if hand_value_diff == 0:
+                    reward += 0.1 * 1  # Maximum reward for exactly hitting 21
+                else:
+                    reward += 0.1 * (1 / hand_value_diff)  # Reward for drawing near 21 when the count is low
             elif running_count_state == 'high' and action == 'stick' and env.hand_value(env.player_hand)[0] >= 17:
-                reward += 0.1  # Reward for sticking at high values when the count is high
+                reward += 0.1 * ((env.hand_value(env.player_hand)[0] - 17) / 4)  # Scales between 0.1 (at 17) to 1.0 (at 21)
 
             # Update running count for new cards dealt
             for card in env.player_hand:
                 self.update_running_count(card)
+            
+            # Track visits
+            action_idx = 0 if action == 'hit' else 1
+            aggregated_state = state[:3]  # Only use (player_total, dealer_card, usable_ace)
+            self.visits[aggregated_state][action_idx] += 1
 
             episode.append((enhanced_state, action, reward))
             if done:
