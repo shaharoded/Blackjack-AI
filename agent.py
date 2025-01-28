@@ -117,18 +117,20 @@ class Agent:
             self.policy[state] = np.argmax(self.Q[state])
             
     def train(
-        self, env, episodes=50000, model_path=None,
-        update_interval=1000, acceptable_proficiency=0.5
+        self, env, episodes=100000, model_path=None,
+        update_interval=5000, acceptable_proficiency=0.6,
+        eval_games=1000  # Number of deterministic games for evaluation
     ):
         """
-        Train the agent using Monte Carlo methods.
+        Train the agent using Monte Carlo methods, but only log performance based on deterministic plays.
 
         Args:
             env (Blackjack): The Blackjack environment.
             episodes (int): Number of training episodes.
             model_path (str): Path to save the trained model.
-            update_interval (int): Frequency to log the win percentage during training.
+            update_interval (int): Frequency to log the deterministic win percentage during training.
             acceptable_proficiency (float): Early stop condition when reaching a certain winning ratio.
+            eval_games (int): Number of evaluation games played at each interval.
         """
         if model_path and os.path.exists(model_path):
             print(f"[Training Status]: Loading existing model from {model_path}...")
@@ -143,27 +145,70 @@ class Agent:
         cumulative_games = 0
 
         for episode in tqdm(range(1, episodes + 1), desc="Training Progress"):
-            episode_data = self.generate_episode(env)  # Use the agent's existing method
+            episode_data = self.generate_episode(env)  # Train with exploration
 
             # Update Q-values and policy
             self.update_Q(episode_data)
             self.improve_policy()
 
-            # Log win percentage
+            # Log training statistics
             reward = episode_data[-1][-1]  # Last reward in the episode
             if reward == 1:
                 cumulative_wins += 1
             cumulative_games += 1
 
+            # Perform deterministic evaluation every update_interval episodes
             if episode % update_interval == 0:
-                win_percentage = (cumulative_wins / cumulative_games)
-                win_percentages.append(win_percentage * 100)
+                eval_results = {"win": 0, "lose": 0, "draw": 0}
+
+                for _ in range(eval_games):  # Evaluate using a fixed number of deterministic games
+                    state = env.reset()
+
+                    # If using the card counting agent, reset and update the running count
+                    if isinstance(self, CardCountingAgent):
+                        self.running_count = 0
+                        for card in env.player_hand + [env.dealer_hand[0]]:
+                            self.update_running_count(card)
+
+                    while True:
+                        # Determine the correct state format for the agent
+                        if isinstance(self, CardCountingAgent):
+                            running_count_state = self.discretize_running_count()
+                            enhanced_state = (state[0], state[1], state[2], state[3], running_count_state)
+                        else:
+                            enhanced_state = state
+
+                        # Choose action based on policy (deterministic, no exploration)
+                        action = 'hit' if self.policy.get(enhanced_state, 1) == 0 else 'stick'
+
+                        # Step in the environment
+                        next_state, reward, done = env.step(action)
+
+                        # Update running count for new cards if using the counter agent
+                        if isinstance(self, CardCountingAgent):
+                            for card in env.player_hand:
+                                self.update_running_count(card)
+
+                        if done:
+                            if reward == 1:
+                                eval_results["win"] += 1
+                            elif reward == -1:
+                                eval_results["lose"] += 1
+                            else:
+                                eval_results["draw"] += 1
+                            break
+
+                        state = next_state
+
+                # Compute deterministic win rate
+                eval_win_percentage = (eval_results["win"] / eval_games)
+                win_percentages.append(eval_win_percentage * 100)
 
                 # Early stopping condition
-                if len(win_percentages) > 5 and np.mean(win_percentages[-5:]) >= acceptable_proficiency * 100:
+                if len(win_percentages) > 5 and np.mean(win_percentages[-5:]) >= acceptable_proficiency*100:
                     print(f"Early stopping at episode {episode}: Avg win percentage = {np.mean(win_percentages[-5:]):.2f}%")
                     break
-
+            
         # Save model
         if model_path:
             os.makedirs(os.path.dirname(model_path), exist_ok=True)

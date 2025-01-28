@@ -11,13 +11,14 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
 - Two AI agents:
   - **Regular Agent**: Learns using Monte Carlo sampling.
   - **Card Counting Agent**: Incorporates running count to adjust its decisions dynamically.
-- An assistant module to recommend on optimal play based on the game state, using a loop until ordered to stop
+- An assistant module to recommend on optimal play based on the game state, using a loop until ordered to stop:
   - Has a reshuffling option.
-  - Support both honest player or card counter. 
+  - Support both honest player or card counter.
+  - Shows winning probability after every move.  
 - Deck reshuffles automatically after every 5 games.
 - Performance tracking during training with win percentage visualization.
 - Early stopping during training if the agent achieves a win rate of **50% or higher**.
-- Continue training on an already trained model, if you think it can do better and you got the patience.
+- Continue training an already trained model, if you think it can do better and you got the patience.
 
 ---
 
