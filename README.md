@@ -68,14 +68,8 @@ You'll be prompted with the following menu:
 ```
 
 ## Performance
-
-- **Regular Agent:** Stabilizes at approximately 41% win rate after training for 100,000 episodes. This performance is expected due to the simplified rules and inherent house edge.
-
-- **Card Counting Agent:** Shows a slight improvement (3-4%) by exploiting running count information but remains constrained by the simplified state representation.
-
-### **Win Percentage Plot (Sample Training Run)**
-
-#### **Training Progress Plot - Regular Agent (200K episodes)**
+### **Training Progress Plot - Regular Agent (200K episodes)**
+Stabilizes at approximately 41% win rate after training for 100,000 episodes. This performance is expected due to the simplified rules and inherent house edge.
 ![Training Progress Plot - Regular](Images/regular_agent.png)
 
 ```bash
@@ -83,21 +77,21 @@ Test Results: {'win': 2041, 'lose': 2545, 'draw': 414}
 Win Percentage: 41.62%
 ```
 
-#### **Training Progress Plot - Card Counter (300K episodes)**
-The counter is a slower learner than the regular agent, reaching plateau only later. I also noticed that given it's exploration method, and it's less-greedy method, it looks on the train set as if it's performances are lower, when in fact on purly deterministic testing enviroment it's performances are better. 
+### **Training Progress Plot - Card Counter (300K episodes)**
+The counter is a slower learner than the regular agent, reaching plateau only later. I also noticed that given it's exploration method, and it's less-greedy method in training, it looks on the training plot as if it's performances are lower, when in fact on purly deterministic testing enviroment it's better than the naive agent by **1.5-3%**. 
 
 ```bash
 Test Results: {'win': 2177, 'lose': 2405, 'draw': 418}
 Win Percentage: 43.54%
 ```
-#### **Policy Heatmap - Card Counter**
+### **Policy Heatmap - Card Counter**
 
 Allows you to asses the agent's next move at a given scenario. You can see it caught on a few important base moves. Fine tuning the exploration will probably yield better strategies:
 
 ![Policy - Regular](Images/policy_counter.png)
 
 
-#### **Exploration Heatmap - Card Counter**
+### **Exploration Heatmap - Card Counter**
 
 Allows you to asses if a relative starvation happend for certain states:
 
@@ -116,19 +110,7 @@ State representation is simplified (player_value, dealer_card, usable_ace, n_car
 
 ## **Analysis of Results**
 
-The Blackjack AI agents demonstrate the ability to learn basic strategies within the constraints of the simplified environment. Below is a summary of the performance and areas for improvement:
-
-### **Performance**
-1. **Regular Agent:**
-   - Achieved a stable win rate of approximately **41%** after training for ~100,000 episodes.
-   - The plateau is consistent with expected performance given the house advantage and limited decision-making options (hit or stick only).
-   - The agent's learning is evident through its ability to avoid busting more effectively over time.
-
-2. **Card Counting Agent:**
-    - Improved win rate by **3-4%** compared to the regular agent on testing cases, demonstrating the utility of the running count.
-    - The benefit of card counting is constrained by:
-    - Regular deck reshuffling after every 5 games.
-    - Simplified state representation, adding only deck's running count, which limits the agent’s ability to fully exploit the running count.
+The Blackjack AI agents demonstrate the ability to learn basic strategies within the constraints of the simplified environment. Below is a summary of the observations and areas for improvement:
 
 ### **Key Observations**
 - **Simplified State Representation:** The current state includes only `player_value`, `dealer_card`, `usable_ace`, `len(player_hand)` and `running_count` (for CardCounterAgent only). This limits the agent's ability to generalize nuanced strategies.
@@ -137,31 +119,33 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
 
 ---
 
-## **How to Improve**
+### **How to Improve**
 
-### **1. Use a More Sophisticated Learning Algorithm**
+**1. Use a More Sophisticated Learning Algorithm**
+
 - Use **Value Iteration** instead of **Policy Iteration**. Under the assumption you can approximate the transition probabilities properly, this method is more optimal for spaces with larger states dimantions than action dimentions and can converge much faster.
 - Implement **Deep Q-Networks (DQN)**:
   - Allows for faster convergence and better generalization.
   - Enables the agent to handle more complex state-action spaces, such as multiple decks or additional decision options.
   - Using DNN based solutions could significantly enhance the training time and probably performance, allowing for difficult states to be better learnt.
 
-### **2. Enhance State Representation**
+**2. Enhance State Representation**
+
 - Incorporate more details into the state, such as:
   - **Hand Composition:** Include specific card combinations to account for soft/hard totals.
   - **Remaining Deck Composition:** Track cards dealt to estimate probabilities of specific draws.
 
-### **3. Extend Blackjack Rules**
+**3. Extend Blackjack Rules**
 - Add support for **doubling down**, **splitting**, and **insurance**. These options provide strategic opportunities to increase the player's advantage.
 - Introduce **betting strategies**, allowing the agent to optimize based on the running count.
 
-### **4. Reduce Deck Reshuffling Frequency**
+**4. Reduce Deck Reshuffling Frequency**
 - Increase the number of games before deck reshuffling or introduce multi-deck play (e.g., 4-deck or 8-deck shoes). This would amplify the benefits of card counting.
 
-### **5. Train for Longer Periods**
+**5. Train for Longer Periods**
 - Run training for **200K+ episodes** to explore more states and refine the agent’s policy further.
 
-### **6. Optimize Hyperparameters**
+**6. Optimize Hyperparameters**
 - Experiment with:
   - **Exploration Rate (Epsilon):** Test decay schedules to balance exploration and exploitation.
   - **Learning Rate (Alpha):** Adjust the rate at which the Q-values are updated.
