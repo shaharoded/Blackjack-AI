@@ -69,13 +69,13 @@ You'll be prompted with the following menu:
 
 ## Performance
 
-- **Regular Agent:** Stabilizes at approximately 36% win rate after training for 100,000 episodes. This performance is expected due to the simplified rules and inherent house edge.
+- **Regular Agent:** Stabilizes at approximately 41% win rate after training for 100,000 episodes. This performance is expected due to the simplified rules and inherent house edge.
 
-- **Card Counting Agent:** Shows a slight improvement (1-2%) by exploiting running count information but remains constrained by the simplified state representation.
+- **Card Counting Agent:** Shows a slight improvement (3-4%) by exploiting running count information but remains constrained by the simplified state representation.
 
 ### **Win Percentage Plot (Sample Training Run)**
 
-#### **Training Progress Plot - Regular Agent (200,000 episodes)**
+#### **Training Progress Plot - Regular Agent (200K episodes)**
 ![Training Progress Plot - Regular](Images/regular_agent.png)
 
 ```bash
@@ -83,18 +83,16 @@ Test Results: {'win': 2041, 'lose': 2545, 'draw': 414}
 Win Percentage: 41.62%
 ```
 
-#### **Training Progress Plot - Card Counter (~1.5M)**
-The counter is a much slower learner than the regular agent, reaching plateu only much later. I gave up after ~1.5M, but feel free to train it as you please. 
-
-![Training Progress Plot - Card Counter](Images/card_counter_agent.png)
+#### **Training Progress Plot - Card Counter (300K)**
+The counter is a slower learner than the regular agent, reaching plateau only later. I also noticed that given it's exploration method, and it's less-greedy method, it looks on the train set as if it's performances are lower, when in fact on purly deterministic testing enviroment it's performances are better. 
 
 ```bash
 Test Results: {'win': 2177, 'lose': 2405, 'draw': 418}
 Win Percentage: 43.54%
 ```
-#### **Policy Heatmap - Regular**
+#### **Policy Heatmap - Card Counter**
 
-Allows you to asses the agent's next move at a given scenario. You can how it did catch on a few important base moves. Fine tuning the exploration will probably improve this:
+Allows you to asses the agent's next move at a given scenario. You can see it caught on a few important base moves. Fine tuning the exploration will probably yield better strategies:
 
 ![Policy - Regular](Images/policy_counter.png)
 
@@ -127,10 +125,10 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
    - The agent's learning is evident through its ability to avoid busting more effectively over time.
 
 2. **Card Counting Agent:**
-   - Improved win rate by **2-3%** compared to the regular agent, demonstrating the utility of the running count.
-   - The benefit of card counting is constrained by:
-     - Regular deck reshuffling after every 5 games.
-     - Simplified state representation, adding only deck's running count, which limits the agent’s ability to fully exploit the running count.
+    - Improved win rate by **3-4%** compared to the regular agent on testing cases, demonstrating the utility of the running count.
+    - The benefit of card counting is constrained by:
+    - Regular deck reshuffling after every 5 games.
+    - Simplified state representation, adding only deck's running count, which limits the agent’s ability to fully exploit the running count.
 
 ### **Key Observations**
 - **Simplified State Representation:** The current state includes only `player_value`, `dealer_card`, `usable_ace`, `len(player_hand)` and `running_count` (for CardCounterAgent only). This limits the agent's ability to generalize nuanced strategies.
@@ -142,9 +140,11 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
 ## **How to Improve**
 
 ### **1. Use a More Sophisticated Learning Algorithm**
+- Use **Value Iteration** instead of **Policy Iteration**. Under the assumption you can approximate the transition probabilities properly, this method is more optimal for spaces with larger states dimantions than action dimentions and can converge much faster.
 - Implement **Deep Q-Networks (DQN)**:
   - Allows for faster convergence and better generalization.
   - Enables the agent to handle more complex state-action spaces, such as multiple decks or additional decision options.
+  - Using DNN based solutions could significantly enhance the training time and probably performance, allowing for difficult states to be better learnt.
 
 ### **2. Enhance State Representation**
 - Incorporate more details into the state, such as:
@@ -159,7 +159,7 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
 - Increase the number of games before deck reshuffling or introduce multi-deck play (e.g., 4-deck or 8-deck shoes). This would amplify the benefits of card counting.
 
 ### **5. Train for Longer Periods**
-- Run training for **200,000+ episodes** to explore more states and refine the agent’s policy further.
+- Run training for **200K+ episodes** to explore more states and refine the agent’s policy further.
 
 ### **6. Optimize Hyperparameters**
 - Experiment with:

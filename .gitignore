@@ -1,2 +1,3 @@
 # Ignore irrelevant folders
 __pycache__/
+venv/
