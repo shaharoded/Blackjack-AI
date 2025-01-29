@@ -1,6 +1,6 @@
-# Blackjack AI
+# Black-Jack AI
 
-A simplified Blackjack simulation with AI agents that learn to play using **Monte Carlo methods**. The coding experiment includes a regular agent and a card-counting agent, both trained to optimize their strategies against a dealer, and was created as an intro to RL and also to humiliate my broter at Black-Jack.
+A simplified Blackjack simulation with AI agents that learn to play using **Monte-Carlo methods**. The coding experiment includes a regular agent and a card-counting agent, both trained to optimize their strategies against a dealer, and was created as an intro to RL and also to humiliate my broter at the game.
 
 ---
 
@@ -9,15 +9,15 @@ A simplified Blackjack simulation with AI agents that learn to play using **Mont
   - No splitting or doubling down.
   - Dealer must hit on a soft 17.
 - Two AI agents:
-  - **Regular Agent**: Learns using Monte Carlo sampling.
+  - **Regular Agent**: Learns using Monte-Carlo sampling.
   - **Card Counting Agent**: Incorporates running count to adjust its decisions dynamically.
 - An assistant module to recommend on optimal play based on the game state, using a loop until ordered to stop:
   - Has a reshuffling option.
   - Support both honest player or card counter.
   - Shows winning probability after every move.  
-- Deck reshuffles automatically after every 5 games.
+- In training mode, deck reshuffles automatically after every 5 games.
 - Performance tracking during training with win percentage visualization.
-- Early stopping during training if the agent achieves a win rate of **50% or higher**.
+- Early stopping during training if the agent achieves a win rate of **60% or higher**.
 - Continue training an already trained model, if you think it can do better and you got the patience.
 
 ---
@@ -75,7 +75,7 @@ You'll be prompted with the following menu:
 4. ❌ Exit
 ```
 
-If assistant mode is chosen, a simple interface will interact with you through the game, suggest the best play and estimate your sucess rate. Remember, the house has a built in advantage, so the probabilities are never ~100%.
+If assistant mode is chosen, a simple interface will interact with you through the game, suggesting the best play and estimating your success rates. Remember, the house has a built in advantage, so the probabilities are never ~100%.
 
 ```bash
     [🎴] New Round. Enter the game state or type 'shuffle' to reset count, 'end' to stop.
