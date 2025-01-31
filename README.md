@@ -144,8 +144,7 @@ The Blackjack AI agents demonstrate the ability to learn basic strategies within
 
 **1. Use a More Sophisticated Learning Algorithm**
 
-- Use **Value Iteration** instead of **Policy Iteration**. Under the assumption you can approximate the transition probabilities properly, this method is more optimal for spaces with larger states dimantions than action dimentions and can converge much faster.
-- Implement **Deep Q-Networks (DQN)**:
+Implement **Deep Q-Networks (DQN)**:
   - Allows for faster convergence and better generalization.
   - Enables the agent to handle more complex state-action spaces, such as multiple decks or additional decision options.
   - Using DNN based solutions could significantly enhance the training time and probably performance, allowing for difficult states to be better learnt.
